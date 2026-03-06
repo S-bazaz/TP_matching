@@ -1,0 +1,13 @@
+{
+  "query": {
+    "script_score": {
+      "query": { "match_all": {} },
+      "script": {
+        "source": "double distance = 0.0; for (int i = 0; i < params.input_vector.length; ++i) { double diff = params.input_vector[i] - doc['product_vector'][i]; distance += diff * diff; } distance = Math.sqrt(distance); return 1.0 / (1.0 + distance);",
+        "params": {
+          "input_vector": [1.0, 0.0, 0.0, 0.0]
+        }
+      }
+    }
+  }
+}
