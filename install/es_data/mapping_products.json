@@ -20,8 +20,7 @@
         "similarity": "cosine"
       },
       "custom_vector": {
-        "type": "dense_vector",
-        "dims": 4,
+        "type": "float",
         "index": false
       },
       "lastmodificationdate": {
