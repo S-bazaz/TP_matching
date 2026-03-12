@@ -1,8 +1,0 @@
-{"index": {"_index": "products"}}
-{"name": "Chaussure running", "category": "shoes", "product_vector": [1.0, 0.2, 0.1, 0.0], "weights_vector": [1.0, 0.5, 0.5, 0.3]}
-{"index": {"_index": "products"}}
-{"name": "Sac à dos", "category": "bag", "product_vector": [0.1, 0.9, 0.3, 0.2], "weights_vector": [0.3, 1.0, 0.5, 0.4]}
-{"index": {"_index": "products"}}
-{"name": "Baskets ville", "category": "shoes", "product_vector": [0.8, 0.3, 0.2, 0.1], "weights_vector": [0.9, 0.6, 0.4, 0.2]}
-{"index": {"_index": "products"}}
-{"name": "Portefeuille", "category": "bag", "product_vector": [0.2, 0.7, 0.8, 0.4], "weights_vector": [0.2, 0.8, 1.0, 0.5]}

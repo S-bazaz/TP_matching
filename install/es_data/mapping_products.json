@@ -1,0 +1,32 @@
+{
+  "mappings": {
+    "properties": {
+      "product": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "category": {
+        "type": "keyword"
+      },
+      "semantic_vector": {
+        "type": "dense_vector",
+        "dims": 4,
+        "index": true,
+        "similarity": "cosine"
+      },
+      "custom_vector": {
+        "type": "dense_vector",
+        "dims": 4,
+        "index": false
+      },
+      "lastmodificationdate": {
+        "type": "date"
+      }
+    }
+  }
+}

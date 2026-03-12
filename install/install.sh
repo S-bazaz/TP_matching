@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Single entry point for TP_matching: venv, deps, Jupyter kernel, Elasticsearch (local) + index.
+# Single entry point for TP_matching: venv, deps, Jupyter kernel.
 # Optionally skips starting Jupyter (e.g. in devcontainer). With pyenv, set local version first.
 # Run from repo root: ./install/install.sh [--no-jupyter]
 
@@ -18,10 +18,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 REQUIREMENTS="${SCRIPT_DIR}/requirements.txt"
 ENV_NAME=".venv"
-ES_VERSION="8.11.0"
-BASE_URL="https://artifacts.elastic.co/downloads/elasticsearch"
-ES_DIR="$REPO_ROOT/elasticsearch_local"
-ES_DATA="$REPO_ROOT/es_data"
 
 if command -v pyenv >/dev/null 2>&1; then
   DESIRED_VERSION="3.11.9"
@@ -65,48 +61,8 @@ python -m pip install -r "$REQUIREMENTS"
 echo "=== Registering Jupyter kernel 'tp_matching_kernel' (inside venv) ==="
 python -m ipykernel install --user --name tp_matching_kernel --display-name tp_matching_kernel
 
-# --- Elasticsearch (local, no Docker): install, start, create index and bulk ---
-case "$(uname -s)" in
-  Linux*)   ARCH="linux-x86_64";;
-  Darwin*)  ARCH="darwin-$(uname -m | sed 's/x86_64/x86_64/;s/arm64/aarch64/')";;
-  *)        ARCH="";;
-esac
-if [ -n "$ARCH" ]; then
-  TAR_NAME="elasticsearch-${ES_VERSION}-${ARCH}.tar.gz"
-  DOWNLOAD_URL="$BASE_URL/$TAR_NAME"
-  ES_HOME="$ES_DIR/elasticsearch-$ES_VERSION"
-  if [ ! -d "$ES_HOME" ]; then
-    echo "=== Downloading Elasticsearch $ES_VERSION ==="
-    mkdir -p "$ES_DIR"
-    (cd "$ES_DIR" && { curl -sSL -O "$DOWNLOAD_URL" || wget -q "$DOWNLOAD_URL"; })
-    (cd "$ES_DIR" && tar -xzf "$TAR_NAME")
-    rm -f "$ES_DIR/$TAR_NAME"
-  fi
-  CONFIG="$ES_HOME/config/elasticsearch.yml"
-  if ! grep -q "xpack.security.enabled" "$CONFIG" 2>/dev/null; then
-    echo "" >> "$CONFIG"
-    echo "xpack.security.enabled: false" >> "$CONFIG"
-    echo "discovery.type: single-node" >> "$CONFIG"
-  fi
-  echo "=== Starting Elasticsearch in background ==="
-  (cd "$ES_HOME" && ./bin/elasticsearch -d)
-  echo "Waiting for Elasticsearch on http://localhost:9200 ..."
-  for i in $(seq 1 30); do
-    if curl -s -o /dev/null -w "%{http_code}" "http://localhost:9200" 2>/dev/null | grep -q "200"; then break; fi
-    [ "$i" -eq 30 ] && { echo "Elasticsearch did not become ready in time."; exit 1; }
-    sleep 2
-  done
-  echo "=== Creating index 'products' and bulk indexing 4 products ==="
-  curl -s -X PUT "http://localhost:9200/products" -H "Content-Type: application/json" -d "@${ES_DATA}/mapping_products.json"
-  curl -s -X POST "http://localhost:9200/products/_bulk" -H "Content-Type: application/x-ndjson" --data-binary "@${ES_DATA}/products_bulk.ndjson"
-  echo ""
-  echo "Elasticsearch is running at http://localhost:9200 with index 'products' (4 products)."
-else
-  echo "Elasticsearch auto-install is supported only on Linux/macOS in this script. On Windows use install.ps1."
-fi
-
 echo
-echo "Setup finished."
+echo "Setup finished (venv + dépendances + kernel Jupyter)."
 echo "To reuse the environment:"
 echo "  source ${ENV_NAME}/Scripts/activate    # Windows Git Bash"
 echo "  source ${ENV_NAME}/bin/activate        # Linux / macOS"
