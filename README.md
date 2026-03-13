@@ -26,44 +26,26 @@ cd TP_matching
 ./install/install.sh
 ```
 
-Ces scripts font tout en une fois : environnement virtuel `.venv`, dépendances (`install/requirements.txt`), kernel Jupyter `tp_matching_kernel`, **installation d’Elasticsearch en local** (téléchargement, extraction dans `elasticsearch_local/`, démarrage en arrière-plan), **création de l’index `products`** et indexation des 4 produits, puis lancement de Jupyter Lab. En devcontainer, c’est `install/install.sh --no-jupyter` qui est exécuté (Elasticsearch et l’index sont créés aussi).
-
-Pour vérifier à tout moment que **le serveur Elasticsearch est bien joignable et que l’index `products` existe**, vous pouvez exécuter :
-
-```powershell
-cd .\TP_matching
-.\install\check_elasticsearch.ps1
-```
+Ces scripts font tout en une fois : environnement virtuel `.venv`, dépendances (`install/requirements.txt`), kernel Jupyter `tp_matching_kernel`, puis lancement de Jupyter Lab (sauf si vous passez l’option `--no-jupyter` côté bash). **Ils ne démarrent plus d’instance Elasticsearch locale** : le cluster utilisé pour la partie Matching est celui pointé par votre `.env` (souvent un déploiement Elastic Cloud).
 
 ## 2. Utilisation dans un Codespace / devcontainer
 
 Si vous ouvrez ce dépôt dans un Codespace GitHub ou via VS Code Remote qui prend en compte `.devcontainer/devcontainer.json` :
 - une image Python 3.11 est utilisée comme base,
-- la commande `postCreateCommand` exécute `install/install.sh --no-jupyter` (venv, deps, kernel, Elasticsearch + index),
+- la commande `postCreateCommand` exécute `install/install.sh --no-jupyter` (venv, deps, kernel),
 - l’interpréteur par défaut est le Python du `.venv` créé par le script.
 
 Dans ce cas, à l’ouverture du Codespace vous pouvez directement ouvrir `tp_elastic_and_matching.ipynb` et sélectionner le kernel `tp_matching_kernel`, sans relancer les scripts d’installation locaux.
 
 ## 3. Lancer le TP
 
-Une fois l’installation terminée (local ou Codespace), Elasticsearch tourne déjà en local sur http://localhost:9200 avec l’index `products` et les 4 produits :
+Une fois l’installation terminée (local ou Codespace) :
+1. Assurez‑vous que votre fichier `.env` pointe vers un cluster Elasticsearch joignable (`ES_URL`, `API_KEY`).
+2. Si nécessaire, créez l’index de travail et injectez les exemples sur ce cluster à l’aide des scripts décrits ci‑dessous (section 4).
 
+Ensuite :
 1. Ouvre `tp_elastic_and_matching.ipynb` dans ton éditeur (Cursor / VS Code / Jupyter Lab).
 2. Suis les cellules dans l’ordre :
    - **Section 1** : partie Cyber (exécutée avec un noyau **PowerShell** ou en copiant les commandes dans un terminal PowerShell).
    - **Sections suivantes** : partie Matching avec un noyau **Python** (kernel `tp_matching_kernel` ou équivalent).
-
-## 4. Utilisation avec Elastic Cloud
-
-Pour utiliser un cluster Elasticsearch hébergé (ex. Elastic Cloud), créez un fichier `.env` à la racine de `TP_matching` avec `ES_URL` et `API_KEY`. Vous pouvez coller la clé telle que fournie par Kibana (format `essu_...`) : le script `install/bulk_temp_index.py` enlève le préfixe pour l’en-tête `Authorization: ApiKey`.
-
-Ce même script crée l’index `temp_tp_matching` avec le mapping de la partie Matching **et** peuple cet index cloud avec les produits d’exemple (fichier `install/es_data/products_bulk.ndjson`, enrichi avec quelques produits supplémentaires). Pour l’exécuter :
-
-```powershell
-cd .\TP_matching
-.\.venv\Scripts\activate
-python .\install\bulk_temp_index.py
-```
-
-Le script `install/bulk_temp_index.py` lit le bulk NDJSON, remplace l’index `products` par `temp_tp_matching`, crée l’index s’il n’existe pas encore et envoie le bulk vers le cluster défini dans `.env`.
 
